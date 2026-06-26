@@ -1,0 +1,2901 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Planit — 기숙사 스터디 플래너</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+      :root {
+        --bg: #0f0e1a;
+        --surface: #1a1928;
+        --surface2: #221f35;
+        --surface3: #2c2845;
+        --border: rgba(255, 255, 255, 0.08);
+        --lime: #c8ff57;
+        --lime-dim: rgba(200, 255, 87, 0.12);
+        --lime-glow: rgba(200, 255, 87, 0.25);
+        --violet: #7c6af5;
+        --violet-dim: rgba(124, 106, 245, 0.15);
+        --rose: #ff6b6b;
+        --rose-dim: rgba(255, 107, 107, 0.12);
+        --sky: #5bc8ff;
+        --sky-dim: rgba(91, 200, 255, 0.12);
+        --amber: #ffb347;
+        --amber-dim: rgba(255, 179, 71, 0.12);
+        --text: #f0eff8;
+        --text2: rgba(240, 239, 248, 0.6);
+        --text3: rgba(240, 239, 248, 0.35);
+        --r-sm: 8px;
+        --r-md: 14px;
+        --r-lg: 20px;
+      }
+
+      /* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        outline: none;
+      }
+      input,
+      textarea,
+      select {
+        font-family: inherit;
+        outline: none;
+        border: none;
+      }
+      ul {
+        list-style: none;
+      }
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--surface3);
+        border-radius: 99px;
+      }
+
+      /* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+      .shell {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+      }
+
+      /* ═══════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════ */
+      .topbar {
+        grid-column: 1/-1;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 24px 0 20px;
+        height: 58px;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .brand {
+        font-family: "Outfit", sans-serif;
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -1px;
+        color: var(--lime);
+        text-shadow: 0 0 20px var(--lime-glow);
+        flex-shrink: 0;
+      }
+      .brand span {
+        color: var(--text);
+        opacity: 0.5;
+        font-weight: 300;
+      }
+
+      .topbar-center {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+      .streak-badge {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        padding: 5px 14px;
+        font-size: 13px;
+        color: var(--text2);
+      }
+      .streak-fire {
+        font-size: 16px;
+      }
+      .streak-num {
+        font-family: "Outfit", sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--amber);
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+      }
+      .date-chip {
+        font-size: 13px;
+        color: var(--text3);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 4px 10px;
+      }
+      .countdown-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--lime-dim);
+        border: 1px solid rgba(200, 255, 87, 0.2);
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-family: "Outfit", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--lime);
+      }
+      .countdown-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--lime);
+        box-shadow: 0 0 8px var(--lime);
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(0.7);
+        }
+      }
+
+      /* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 0;
+        gap: 4px;
+        position: sticky;
+        top: 58px;
+        height: calc(100vh - 58px);
+        overflow: hidden;
+      }
+      .nav-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text3);
+        font-size: 20px;
+        transition: all 0.18s;
+        position: relative;
+      }
+      .nav-btn:hover {
+        background: var(--surface2);
+        color: var(--text2);
+      }
+      .nav-btn.active {
+        background: var(--lime-dim);
+        color: var(--lime);
+      }
+      .nav-btn .nav-tooltip {
+        position: absolute;
+        left: 56px;
+        background: var(--surface3);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 500;
+        padding: 4px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: all 0.15s;
+        z-index: 200;
+      }
+      .nav-btn:hover .nav-tooltip {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* ═══════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════ */
+      .content {
+        padding: 28px 28px 60px;
+        overflow-y: auto;
+        max-height: calc(100vh - 58px);
+      }
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+        animation: fadeIn 0.2s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .page-header {
+        margin-bottom: 24px;
+      }
+      .page-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.5px;
+      }
+      .page-sub {
+        font-size: 13px;
+        color: var(--text3);
+        margin-top: 3px;
+      }
+
+      /* ═══════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════ */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 22px 24px;
+        margin-bottom: 16px;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+      .card-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card-title .icon {
+        font-size: 17px;
+      }
+
+      /* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+      .btn {
+        padding: 9px 18px;
+        border-radius: var(--r-sm);
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.15s;
+      }
+      .btn-lime {
+        background: var(--lime);
+        color: #0f0e1a;
+      }
+      .btn-lime:hover {
+        background: #d4ff6e;
+        box-shadow: 0 0 16px var(--lime-glow);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text2);
+        border: 1px solid var(--border);
+      }
+      .btn-ghost:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .btn-danger {
+        background: var(--rose-dim);
+        color: var(--rose);
+        border: 1px solid rgba(255, 107, 107, 0.2);
+      }
+      .btn-danger:hover {
+        background: rgba(255, 107, 107, 0.2);
+      }
+
+      /* Input base */
+      .inp {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        color: var(--text);
+        padding: 10px 14px;
+        font-size: 14px;
+        transition: border-color 0.15s;
+        width: 100%;
+      }
+      .inp:focus {
+        border-color: rgba(200, 255, 87, 0.4);
+      }
+      .inp::placeholder {
+        color: var(--text3);
+      }
+
+      /* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+      #toast {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 9999;
+        background: var(--surface3);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 12px 20px;
+        font-size: 14px;
+        color: var(--text);
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.25s;
+        pointer-events: none;
+      }
+      #toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 0 : DASHBOARD
+═══════════════════════════════════════════ */
+      .dash-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      .dash-stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 20px 22px;
+        position: relative;
+        overflow: hidden;
+      }
+      .dash-stat::before {
+        content: "";
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        opacity: 0.15;
+      }
+      .dash-stat.lime::before {
+        background: var(--lime);
+      }
+      .dash-stat.violet::before {
+        background: var(--violet);
+      }
+      .dash-stat.sky::before {
+        background: var(--sky);
+      }
+      .dash-stat.amber::before {
+        background: var(--amber);
+      }
+      .dash-stat .ds-label {
+        font-size: 11px;
+        color: var(--text3);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+      }
+      .dash-stat .ds-val {
+        font-family: "Outfit", sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+      }
+      .dash-stat .ds-val .ds-unit {
+        font-size: 15px;
+        font-weight: 400;
+        color: var(--text3);
+      }
+      .dash-stat .ds-sub {
+        font-size: 12px;
+        color: var(--text3);
+        margin-top: 5px;
+      }
+
+      .dash-wide {
+        grid-column: 1/-1;
+      }
+
+      /* Mini heatmap */
+      .mini-heat {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+      }
+      .mh-cell {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        background: var(--surface2);
+        position: relative;
+      }
+      .mh-cell[data-mins] {
+        cursor: default;
+      }
+      .mh-cell.l1 {
+        background: rgba(200, 255, 87, 0.2);
+      }
+      .mh-cell.l2 {
+        background: rgba(200, 255, 87, 0.45);
+      }
+      .mh-cell.l3 {
+        background: rgba(200, 255, 87, 0.75);
+      }
+      .mh-cell.l4 {
+        background: var(--lime);
+      }
+
+      /* D-day strip */
+      .dday-strip {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .dday-card {
+        flex-shrink: 0;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 14px 18px;
+        min-width: 140px;
+        position: relative;
+      }
+      .dday-card .dd-subject {
+        font-size: 11px;
+        color: var(--text3);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .dday-card .dd-name {
+        font-size: 14px;
+        color: var(--text);
+        margin: 4px 0 8px;
+        font-weight: 500;
+      }
+      .dday-card .dd-days {
+        font-family: "Outfit", sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--lime);
+      }
+      .dday-card .dd-days.urgent {
+        color: var(--rose);
+      }
+      .dday-card .dd-days.soon {
+        color: var(--amber);
+      }
+      .dday-card .dd-unit {
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .dday-card .dd-del {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: var(--text3);
+        font-size: 13px;
+        cursor: pointer;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+      .dday-card .dd-del:hover {
+        color: var(--rose);
+        background: var(--rose-dim);
+      }
+
+      /* Quick task */
+      .quick-tasks {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .qt-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface2);
+        border-radius: var(--r-sm);
+        font-size: 14px;
+        transition: opacity 0.2s;
+      }
+      .qt-item.done {
+        opacity: 0.4;
+      }
+      .qt-item.done .qt-text {
+        text-decoration: line-through;
+      }
+      .qt-check {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        flex-shrink: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .qt-check.on {
+        background: var(--lime);
+        border-color: var(--lime);
+      }
+      .qt-check.on::after {
+        content: "✓";
+        color: #0f0e1a;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .qt-subj {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 2px 7px;
+        border-radius: 99px;
+        flex-shrink: 0;
+      }
+      .qt-text {
+        flex: 1;
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 1 : TIME GRID
+═══════════════════════════════════════════ */
+      .subject-add-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .grid-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .subj-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 99px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.15s;
+        user-select: none;
+      }
+      .subj-pill .sp-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .subj-pill .sp-del {
+        margin-left: 2px;
+        font-size: 11px;
+        opacity: 0.45;
+        padding: 0 2px;
+        line-height: 1;
+      }
+      .subj-pill .sp-del:hover {
+        opacity: 1;
+        color: var(--rose);
+      }
+      .subj-pill.sel {
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 12px var(--glow);
+      }
+      .erase-pill {
+        padding: 7px 14px;
+        border-radius: 99px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--surface2);
+        color: var(--text3);
+        border: 2px solid transparent;
+        transition: all 0.15s;
+      }
+      .erase-pill.sel {
+        border-color: var(--rose);
+        color: var(--rose);
+        background: var(--rose-dim);
+      }
+
+      .grid-wrap {
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .time-grid {
+        display: grid;
+        grid-template-columns: 48px repeat(36, 20px);
+        gap: 0;
+        min-width: max-content;
+        row-gap: 3px;
+      }
+      .tg-row-label {
+        font-size: 10px;
+        color: var(--text3);
+        text-align: right;
+        padding-right: 8px;
+        line-height: 24px;
+        font-family: "Outfit", sans-serif;
+      }
+      .tg-cell {
+        height: 28px;
+        background: var(--surface2);
+        cursor: pointer;
+        border-radius: 3px;
+        margin: 0 1px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        transition:
+          opacity 0.1s,
+          transform 0.05s;
+      }
+      .tg-cell:hover {
+        transform: scaleY(1.08);
+        opacity: 0.8;
+      }
+      .tg-hr-label {
+        font-size: 9px;
+        color: var(--text3);
+        text-align: center;
+        line-height: 1;
+        padding-bottom: 3px;
+        font-family: "Outfit", sans-serif;
+      }
+      .tg-header-space {
+        grid-column: 1;
+      }
+
+      .grid-legend {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .gl-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .gl-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+
+      /* summary bar */
+      .study-summary {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .sum-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 99px;
+        padding: 5px 12px;
+        font-size: 13px;
+        color: var(--text2);
+      }
+      .sum-chip .sum-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .sum-chip strong {
+        font-family: "Outfit", sans-serif;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 2 : CHECKLIST
+═══════════════════════════════════════════ */
+      .subj-tabs {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .stab {
+        padding: 7px 16px;
+        border-radius: var(--r-sm);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--surface2);
+        color: var(--text3);
+        border: 1px solid transparent;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .stab .stab-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .stab.active {
+        background: var(--surface3);
+        color: var(--text);
+        border-color: var(--border);
+      }
+      .stab .stab-cnt {
+        font-size: 11px;
+        background: var(--surface3);
+        border-radius: 99px;
+        padding: 1px 7px;
+        color: var(--text3);
+      }
+
+      .add-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .progress-wrap {
+        background: var(--surface2);
+        border-radius: 99px;
+        height: 5px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: var(--lime);
+        transition: width 0.4s ease;
+        box-shadow: 0 0 8px var(--lime-glow);
+      }
+      .tasks {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .task-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface2);
+        border-radius: var(--r-sm);
+        font-size: 14px;
+        transition: opacity 0.2s;
+        border: 1px solid transparent;
+      }
+      .task-item:hover {
+        border-color: var(--border);
+      }
+      .task-item.done {
+        opacity: 0.4;
+      }
+      .task-item.done .ti-text {
+        text-decoration: line-through;
+      }
+      .ti-check {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        flex-shrink: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .ti-check.on {
+        background: var(--lime);
+        border-color: var(--lime);
+      }
+      .ti-check.on::after {
+        content: "✓";
+        color: #0f0e1a;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .ti-text {
+        flex: 1;
+      }
+      .ti-pri {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+      .ti-del {
+        color: var(--text3);
+        font-size: 14px;
+        padding: 2px 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .ti-del:hover {
+        color: var(--rose);
+        background: var(--rose-dim);
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 3 : POMODORO
+═══════════════════════════════════════════ */
+      .pomo-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 0 30px;
+      }
+      .pomo-ring-wrap {
+        position: relative;
+        width: 240px;
+        height: 240px;
+        margin-bottom: 28px;
+      }
+      .pomo-svg {
+        transform: rotate(-90deg);
+      }
+      .pomo-bg-circle {
+        fill: none;
+        stroke: var(--surface2);
+        stroke-width: 12;
+      }
+      .pomo-progress-circle {
+        fill: none;
+        stroke-width: 12;
+        stroke-linecap: round;
+        stroke: var(--lime);
+        filter: drop-shadow(0 0 8px var(--lime-glow));
+        transition:
+          stroke-dashoffset 0.5s linear,
+          stroke 0.3s;
+      }
+      .pomo-time-display {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+      .pomo-time {
+        font-family: "Outfit", sans-serif;
+        font-size: 52px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -2px;
+        line-height: 1;
+      }
+      .pomo-mode {
+        font-size: 12px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+      .pomo-controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .pomo-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .pomo-play {
+        background: var(--lime);
+        color: #0f0e1a;
+        box-shadow: 0 0 20px var(--lime-glow);
+      }
+      .pomo-play:hover {
+        transform: scale(1.07);
+      }
+      .pomo-skip {
+        background: var(--surface2);
+        color: var(--text2);
+        border: 1px solid var(--border);
+      }
+      .pomo-skip:hover {
+        background: var(--surface3);
+      }
+      .pomo-reset {
+        background: var(--surface2);
+        color: var(--text2);
+        border: 1px solid var(--border);
+      }
+      .pomo-reset:hover {
+        background: var(--surface3);
+      }
+
+      .pomo-presets {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 4px;
+      }
+      .pomo-preset-btn {
+        padding: 8px 16px;
+        border-radius: 99px;
+        font-size: 13px;
+        font-weight: 600;
+        background: var(--lime-dim);
+        color: var(--lime);
+        border: 1px solid rgba(200, 255, 87, 0.25);
+        transition: all 0.15s;
+      }
+      .pomo-preset-btn:hover {
+        background: rgba(200, 255, 87, 0.22);
+        box-shadow: 0 0 12px var(--lime-glow);
+      }
+
+      .pomo-settings {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .pomo-set-item {
+        text-align: center;
+      }
+      .pomo-set-item label {
+        display: block;
+        font-size: 11px;
+        color: var(--text3);
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .pomo-set-item input {
+        width: 80px;
+        text-align: center;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: var(--r-sm);
+        padding: 8px;
+        font-size: 14px;
+        font-family: "Outfit", sans-serif;
+        font-weight: 600;
+      }
+
+      .pomo-log {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .pomo-log-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface2);
+        border-radius: var(--r-sm);
+        font-size: 13px;
+        color: var(--text2);
+      }
+      .pomo-log-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--lime);
+        flex-shrink: 0;
+      }
+      .pomo-log-dot.brk {
+        background: var(--sky);
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 4 : AI PLAN
+═══════════════════════════════════════════ */
+      .ai-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .fg {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .fg label {
+        font-size: 11px;
+        color: var(--text3);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .fg.full {
+        grid-column: 1/-1;
+      }
+      .fg textarea {
+        resize: none;
+      }
+
+      .ai-run-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--r-md);
+        background: var(--lime);
+        color: #0f0e1a;
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 20px var(--lime-glow);
+      }
+      .ai-run-btn:hover {
+        background: #d4ff6e;
+        transform: translateY(-1px);
+      }
+      .ai-run-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .ai-output {
+        margin-top: 18px;
+        padding: 22px 24px;
+        background: var(--lime-dim);
+        border: 1px solid rgba(200, 255, 87, 0.15);
+        border-radius: var(--r-lg);
+        font-size: 14px;
+        line-height: 1.8;
+        color: var(--text);
+        white-space: pre-wrap;
+      }
+      .ai-output.thinking {
+        color: var(--text3);
+        font-style: italic;
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 5 : D-DAY MANAGER
+═══════════════════════════════════════════ */
+      .dday-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+        margin-bottom: 20px;
+      }
+      .dday-big-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 14px;
+      }
+      .dday-big {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .dday-big::after {
+        content: "";
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        opacity: 0.06;
+      }
+      .dday-big.lime::after {
+        background: var(--lime);
+      }
+      .dday-big.rose::after {
+        background: var(--rose);
+      }
+      .dday-big.violet::after {
+        background: var(--violet);
+      }
+      .dday-big .ddb-label {
+        font-size: 11px;
+        color: var(--text3);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .dday-big .ddb-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 6px 0 14px;
+      }
+      .dday-big .ddb-num {
+        font-family: "Outfit", sans-serif;
+        font-size: 52px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .dday-big .ddb-unit {
+        font-size: 13px;
+        color: var(--text3);
+        margin-top: 4px;
+      }
+      .dday-big .ddb-date {
+        font-size: 12px;
+        color: var(--text3);
+        margin-top: 8px;
+      }
+      .dday-big .ddb-del {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        color: var(--text3);
+        font-size: 13px;
+        cursor: pointer;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+      .dday-big .ddb-del:hover {
+        color: var(--rose);
+        background: var(--rose-dim);
+      }
+
+      /* ═══════════════════════════════════════════
+   PAGE 6 : RECORDS
+═══════════════════════════════════════════ */
+      .rec-filter {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .rec-filter-btn {
+        padding: 6px 14px;
+        border-radius: var(--r-sm);
+        font-size: 13px;
+        font-weight: 500;
+        background: var(--surface2);
+        color: var(--text3);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .rec-filter-btn.active {
+        background: var(--surface3);
+        color: var(--text);
+        border-color: var(--border);
+      }
+
+      .weekly-bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 100px;
+        margin-bottom: 6px;
+      }
+      .wbc-bar {
+        flex: 1;
+        border-radius: 4px 4px 0 0;
+        background: var(--lime);
+        opacity: 0.7;
+        min-height: 3px;
+        transition:
+          height 0.4s ease,
+          opacity 0.15s;
+        cursor: default;
+        position: relative;
+      }
+      .wbc-bar:hover {
+        opacity: 1;
+      }
+      .wbc-bar.today {
+        opacity: 1;
+        box-shadow: 0 0 12px var(--lime-glow);
+      }
+      .wbc-labels {
+        display: flex;
+        gap: 6px;
+      }
+      .wbc-label {
+        flex: 1;
+        text-align: center;
+        font-size: 11px;
+        color: var(--text3);
+        font-family: "Outfit", sans-serif;
+      }
+
+      .rec-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .rec-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 18px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+      }
+      .rec-bar {
+        width: 4px;
+        border-radius: 2px;
+        align-self: stretch;
+        flex-shrink: 0;
+      }
+      .rec-body {
+        flex: 1;
+      }
+      .rec-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .rec-subj {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+      .rec-time {
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .rec-content {
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      /* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+      @media (max-width: 768px) {
+        .shell {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto 1fr;
+        }
+        .topbar {
+          padding: 0 16px;
+        }
+        .sidebar {
+          grid-row: 2;
+          flex-direction: row;
+          justify-content: center;
+          height: auto;
+          padding: 8px;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          position: static;
+        }
+        .nav-btn .nav-tooltip {
+          display: none;
+        }
+        .content {
+          padding: 20px 16px 60px;
+          max-height: none;
+        }
+        .dash-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .ai-form {
+          grid-template-columns: 1fr;
+        }
+        .dday-form {
+          grid-template-columns: 1fr;
+        }
+        .pomo-ring-wrap {
+          width: 200px;
+          height: 200px;
+        }
+        .pomo-time {
+          font-size: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <!-- ══ TOPBAR ══ -->
+      <header class="topbar">
+        <div class="brand">Planit<span>.</span></div>
+        <div class="topbar-center">
+          <div class="streak-badge">
+            <span class="streak-fire">🔥</span>
+            <span class="streak-num" id="streakNum">0</span>
+            <span>일 연속 공부 중</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="date-chip" id="headerDate"></div>
+          <div
+            class="countdown-chip"
+            id="selfStudyCountdown"
+            style="display: none"
+          >
+            <span class="countdown-dot"></span>
+            <span id="cdText">집중 타이머</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ══ SIDEBAR ══ -->
+      <nav class="sidebar">
+        <div class="nav-btn active" data-page="dashboard">
+          🏠<span class="nav-tooltip">대시보드</span>
+        </div>
+        <div class="nav-btn" data-page="planner">
+          📅<span class="nav-tooltip">타임 플래너</span>
+        </div>
+        <div class="nav-btn" data-page="checklist">
+          ✅<span class="nav-tooltip">할 일 목록</span>
+        </div>
+        <div class="nav-btn" data-page="pomodoro">
+          ⏱<span class="nav-tooltip">포모도로</span>
+        </div>
+        <div class="nav-btn" data-page="ai">
+          ✨<span class="nav-tooltip">AI 계획 추천</span>
+        </div>
+        <div class="nav-btn" data-page="dday">
+          📌<span class="nav-tooltip">D-Day 관리</span>
+        </div>
+        <div class="nav-btn" data-page="records">
+          📊<span class="nav-tooltip">공부 기록</span>
+        </div>
+      </nav>
+
+      <!-- ══ CONTENT ══ -->
+      <main class="content">
+        <!-- ─── DASHBOARD ─── -->
+        <div class="page active" id="page-dashboard">
+          <div class="page-header">
+            <div class="page-title" id="dashGreet">안녕하세요 👋</div>
+            <div class="page-sub">오늘도 Planit과 함께 집중해봐요.</div>
+          </div>
+
+          <div class="dash-grid" id="dashStats"></div>
+
+          <!-- D-Day 미리보기 -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="icon">📌</span> 다가오는 시험
+              </div>
+              <button
+                class="btn btn-ghost"
+                style="font-size: 12px; padding: 6px 12px"
+                onclick="goPage('dday')"
+              >
+                모두 보기
+              </button>
+            </div>
+            <div class="dday-strip" id="dashDday"></div>
+          </div>
+
+          <!-- 오늘 할 일 -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="icon">✅</span> 오늘의 할 일
+              </div>
+              <button
+                class="btn btn-ghost"
+                style="font-size: 12px; padding: 6px 12px"
+                onclick="goPage('checklist')"
+              >
+                전체 보기
+              </button>
+            </div>
+            <div class="quick-tasks" id="dashTasks"></div>
+          </div>
+
+          <!-- 30일 공부 히트맵 -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="icon">📆</span> 최근 30일 공부 기록
+              </div>
+            </div>
+            <div class="mini-heat" id="miniHeat"></div>
+            <div style="margin-top: 10px; font-size: 12px; color: var(--text3)">
+              색이 진할수록 많이 공부한 날이에요.
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── TIME PLANNER ─── -->
+        <div class="page" id="page-planner">
+          <div class="page-header">
+            <div class="page-title">타임 플래너</div>
+            <div class="page-sub">
+              시간 칸을 드래그해서 공부한 과목을 색칠하세요.
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="icon">🎨</span> 과목 선택
+              </div>
+              <button
+                class="btn btn-ghost"
+                style="font-size: 12px; padding: 5px 10px"
+                onclick="clearGrid()"
+              >
+                오늘 기록 지우기
+              </button>
+            </div>
+            <div class="subject-add-row">
+              <input
+                class="inp"
+                id="newSubjInp"
+                placeholder="새 과목 이름 (예: 물리, 일본어, 자격증)"
+                style="flex: 1"
+              />
+              <button class="btn btn-lime" onclick="addCustomSubject()">
+                과목 추가
+              </button>
+            </div>
+            <div class="grid-controls" id="subjectPills"></div>
+            <div class="grid-wrap">
+              <div class="time-grid" id="timeGrid"></div>
+            </div>
+            <div class="grid-legend" id="gridLegend"></div>
+            <div class="study-summary" id="studySummary"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 14px">
+              <span class="icon">📝</span> 공부 메모
+            </div>
+            <div class="add-row">
+              <input
+                class="inp"
+                id="memoInp"
+                placeholder="공부한 내용을 기록하세요 (예: 수학 적분 p.45~60)"
+                style="flex: 1"
+              />
+              <button class="btn btn-lime" onclick="addMemo()">기록</button>
+            </div>
+            <ul class="tasks" id="memoList"></ul>
+          </div>
+        </div>
+
+        <!-- ─── CHECKLIST ─── -->
+        <div class="page" id="page-checklist">
+          <div class="page-header">
+            <div class="page-title">할 일 체크리스트</div>
+            <div class="page-sub">과목별로 할 일을 관리하세요.</div>
+          </div>
+          <div class="subj-tabs" id="checklistTabs"></div>
+          <div class="card">
+            <div class="add-row">
+              <input
+                class="inp"
+                id="taskInp"
+                placeholder="할 일 입력 후 Enter"
+                style="flex: 1"
+              />
+              <button class="btn btn-lime" onclick="addTask()">추가</button>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-fill" id="progFill" style="width: 0%"></div>
+            </div>
+            <ul class="tasks" id="taskList"></ul>
+          </div>
+        </div>
+
+        <!-- ─── POMODORO ─── -->
+        <div class="page" id="page-pomodoro">
+          <div class="page-header">
+            <div class="page-title">포모도로 타이머</div>
+            <div class="page-sub">집중과 휴식을 반복하며 효율을 높이세요.</div>
+          </div>
+          <div class="card">
+            <div class="pomo-center">
+              <div class="pomo-ring-wrap">
+                <svg
+                  class="pomo-svg"
+                  width="240"
+                  height="240"
+                  viewBox="0 0 240 240"
+                >
+                  <circle class="pomo-bg-circle" cx="120" cy="120" r="104" />
+                  <circle
+                    class="pomo-progress-circle"
+                    id="pomoRing"
+                    cx="120"
+                    cy="120"
+                    r="104"
+                    stroke-dasharray="653.12"
+                    stroke-dashoffset="0"
+                  />
+                </svg>
+                <div class="pomo-time-display">
+                  <div class="pomo-time" id="pomoTime">25:00</div>
+                  <div class="pomo-mode" id="pomoMode">집중</div>
+                </div>
+              </div>
+              <div class="pomo-controls">
+                <button
+                  class="pomo-btn pomo-reset"
+                  onclick="pomoReset()"
+                  title="리셋"
+                >
+                  ↺
+                </button>
+                <button
+                  class="pomo-btn pomo-play"
+                  id="pomoPlayBtn"
+                  onclick="pomoToggle()"
+                >
+                  ▶
+                </button>
+                <button
+                  class="pomo-btn pomo-skip"
+                  onclick="pomoSkip()"
+                  title="다음"
+                >
+                  ⏭
+                </button>
+              </div>
+              <div class="pomo-presets">
+                <button class="pomo-preset-btn" onclick="startFocusPreset(15)">
+                  15분 집중
+                </button>
+                <button class="pomo-preset-btn" onclick="startFocusPreset(25)">
+                  25분 집중
+                </button>
+                <button class="pomo-preset-btn" onclick="startFocusPreset(30)">
+                  30분 집중
+                </button>
+                <button class="pomo-preset-btn" onclick="startFocusPreset(50)">
+                  50분 집중
+                </button>
+              </div>
+              <div class="pomo-settings">
+                <div class="pomo-set-item">
+                  <label>집중 (분)</label
+                  ><input
+                    type="number"
+                    id="pomoFocusMin"
+                    value="25"
+                    min="1"
+                    max="60"
+                    onchange="pomoReset()"
+                  />
+                </div>
+                <div class="pomo-set-item">
+                  <label>짧은 휴식</label
+                  ><input
+                    type="number"
+                    id="pomoShortMin"
+                    value="5"
+                    min="1"
+                    max="30"
+                    onchange="pomoReset()"
+                  />
+                </div>
+                <div class="pomo-set-item">
+                  <label>긴 휴식</label
+                  ><input
+                    type="number"
+                    id="pomoLongMin"
+                    value="15"
+                    min="1"
+                    max="60"
+                    onchange="pomoReset()"
+                  />
+                </div>
+                <div class="pomo-set-item">
+                  <label>세트 후 긴 휴식</label
+                  ><input
+                    type="number"
+                    id="pomoSet"
+                    value="4"
+                    min="1"
+                    max="10"
+                    onchange="pomoReset()"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 14px">
+              <span class="icon">📋</span> 오늘의 포모도로 기록
+            </div>
+            <ul class="pomo-log" id="pomoLog"></ul>
+          </div>
+        </div>
+
+        <!-- ─── AI PLAN ─── -->
+        <div class="page" id="page-ai">
+          <div class="page-header">
+            <div class="page-title">AI 공부 계획 추천</div>
+            <div class="page-sub">
+              남은 시간과 해야 할 내용을 입력하면 최적의 계획을 만들어 드려요.
+            </div>
+          </div>
+          <div class="card">
+            <div class="ai-form">
+              <div class="fg">
+                <label>오늘 공부 가능 시간대</label
+                ><input
+                  class="inp"
+                  id="aiTime"
+                  placeholder="예: 오후 7시 ~ 10시"
+                />
+              </div>
+              <div class="fg">
+                <label>총 가능 시간 (시간)</label
+                ><input
+                  class="inp"
+                  type="number"
+                  id="aiHours"
+                  placeholder="예: 3"
+                  min="0.5"
+                  step="0.5"
+                />
+              </div>
+              <div class="fg full">
+                <label>공부할 과목 및 내용</label
+                ><textarea
+                  class="inp"
+                  id="aiSubjects"
+                  rows="4"
+                  placeholder="수학 - 미적분 연습문제 p.50~70&#10;영어 - 단어 50개 암기, 독해 3지문&#10;국어 - 문학 파트 정리"
+                ></textarea>
+              </div>
+              <div class="fg">
+                <label>오늘 컨디션</label>
+                <select class="inp" id="aiCondition">
+                  <option value="최상">최상 😊</option>
+                  <option value="보통" selected>보통 😐</option>
+                  <option value="피곤">피곤 😴</option>
+                  <option value="많이 피곤">많이 피곤 😵</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>특이사항</label
+                ><input
+                  class="inp"
+                  id="aiNote"
+                  placeholder="예: 내일 수학 시험, 체육 있었음"
+                />
+              </div>
+            </div>
+            <button class="ai-run-btn" id="aiBtn" onclick="getAIPlan()">
+              ✨ 맞춤 공부 계획 받기
+            </button>
+            <div
+              class="ai-output thinking"
+              id="aiOutput"
+              style="display: none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- ─── D-DAY ─── -->
+        <div class="page" id="page-dday">
+          <div class="page-header">
+            <div class="page-title">D-Day 관리</div>
+            <div class="page-sub">
+              시험과 과제 마감일을 등록하고 남은 날을 확인하세요.
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 14px">
+              <span class="icon">➕</span> 새 일정 추가
+            </div>
+            <div class="dday-form">
+              <div class="fg">
+                <label>이름</label
+                ><input
+                  class="inp"
+                  id="ddName"
+                  placeholder="예: 수학 중간고사"
+                />
+              </div>
+              <div class="fg">
+                <label>날짜</label><input class="inp" type="date" id="ddDate" />
+              </div>
+              <div class="fg">
+                <label>과목</label>
+                <input
+                  class="inp"
+                  id="ddSubject"
+                  placeholder="예: 수학, 영어, 물리..."
+                />
+              </div>
+              <button
+                class="btn btn-lime"
+                style="align-self: flex-end; height: 42px; padding: 0 20px"
+                onclick="addDday()"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+          <div class="dday-big-cards" id="ddayCards"></div>
+        </div>
+
+        <!-- ─── RECORDS ─── -->
+        <div class="page" id="page-records">
+          <div class="page-header">
+            <div class="page-title">공부 기록</div>
+            <div class="page-sub">날짜별 공부 내역을 확인하세요.</div>
+          </div>
+          <div
+            class="dash-grid"
+            id="recStats"
+            style="margin-bottom: 16px"
+          ></div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 14px">
+              <span class="icon">📈</span> 주간 공부 시간
+            </div>
+            <div class="weekly-bar-chart" id="weeklyChart"></div>
+            <div class="wbc-labels" id="weeklyLabels"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="icon">📖</span> 기록 목록
+              </div>
+              <div class="rec-filter">
+                <button class="rec-filter-btn active" data-days="7">7일</button>
+                <button class="rec-filter-btn" data-days="14">14일</button>
+                <button class="rec-filter-btn" data-days="30">30일</button>
+              </div>
+            </div>
+            <div class="rec-list" id="recList"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="toast"></div>
+
+    <script>
+      /* ══════════════════════════════════════════
+   CONSTANTS & DATA
+══════════════════════════════════════════ */
+      const DEFAULT_SUBJECTS = [
+        {
+          id: "math",
+          name: "수학",
+          color: "#7B93FF",
+          glow: "rgba(123,147,255,.3)",
+        },
+        {
+          id: "english",
+          name: "영어",
+          color: "#3ECFA8",
+          glow: "rgba(62,207,168,.3)",
+        },
+        {
+          id: "korean",
+          name: "국어",
+          color: "#FFB347",
+          glow: "rgba(255,179,71,.3)",
+        },
+        {
+          id: "science",
+          name: "과학",
+          color: "#FF6B6B",
+          glow: "rgba(255,107,107,.3)",
+        },
+        {
+          id: "social",
+          name: "사회",
+          color: "#C47AFF",
+          glow: "rgba(196,122,255,.3)",
+        },
+        {
+          id: "etc",
+          name: "기타",
+          color: "#94A3B8",
+          glow: "rgba(148,163,184,.3)",
+        },
+      ];
+      const COLOR_PALETTE = [
+        "#7B93FF",
+        "#3ECFA8",
+        "#FFB347",
+        "#FF6B6B",
+        "#C47AFF",
+        "#94A3B8",
+        "#5BC8FF",
+        "#FF8EC7",
+        "#A8E063",
+        "#F97316",
+        "#E879F9",
+        "#34D399",
+      ];
+      let SUBJECTS = ld("subjects", null);
+      if (!SUBJECTS || !SUBJECTS.length) {
+        SUBJECTS = DEFAULT_SUBJECTS;
+        sv("subjects", SUBJECTS);
+      }
+      function hexToGlow(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},.3)`;
+      }
+      const S = (id) =>
+        SUBJECTS.find((s) => s.id === id) || {
+          id: id || "etc",
+          name: id || "기타",
+          color: "#94A3B8",
+          glow: "rgba(148,163,184,.3)",
+        };
+      function ddaySubjLabel(subject) {
+        const found = SUBJECTS.find(
+          (s) => s.id === subject || s.name === subject,
+        );
+        return found
+          ? { name: found.name, color: found.color }
+          : { name: subject || "기타", color: "#94A3B8" };
+      }
+
+      const TODAY = new Date().toISOString().slice(0, 10);
+      function ld(k, d) {
+        try {
+          return JSON.parse(localStorage.getItem(k)) ?? d;
+        } catch {
+          return d;
+        }
+      }
+      function sv(k, v) {
+        localStorage.setItem(k, JSON.stringify(v));
+      }
+      function esc(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function toast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+      }
+
+      /* ══════════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════════ */
+      (function () {
+        const d = new Date();
+        const days = ["일", "월", "화", "수", "목", "금", "토"];
+        document.getElementById("headerDate").textContent =
+          `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+      })();
+
+      function updateTopbarTimer() {
+        const chip = document.getElementById("selfStudyCountdown");
+        const cdText = document.getElementById("cdText");
+        if (!pomoStarted || pomoMode !== "focus" || pomoSecs <= 0) {
+          chip.style.display = "none";
+          return;
+        }
+        chip.style.display = "flex";
+        const m = Math.floor(pomoSecs / 60);
+        const s = pomoSecs % 60;
+        cdText.textContent = m > 0 ? `${m}분 남음` : `${s}초 남음`;
+      }
+
+      const hour = new Date().getHours();
+      const greet =
+        hour < 12
+          ? "좋은 아침이에요 ☀️"
+          : hour < 18
+            ? "오후도 화이팅! 💪"
+            : hour < 22
+              ? "저녁 자습 시간이에요 🌙"
+              : "야간 자습 중이네요 🌟";
+      document.getElementById("dashGreet").textContent = greet;
+
+      /* ══════════════════════════════════════════
+   NAV
+══════════════════════════════════════════ */
+      function goPage(id) {
+        document
+          .querySelectorAll(".nav-btn")
+          .forEach((b) => b.classList.toggle("active", b.dataset.page === id));
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.toggle("active", p.id === "page-" + id));
+        if (id === "records") renderRecords();
+        if (id === "dashboard") renderDash();
+      }
+      document.querySelectorAll(".nav-btn").forEach((b) => {
+        b.addEventListener("click", () => goPage(b.dataset.page));
+      });
+
+      /* ══════════════════════════════════════════
+   STREAK
+══════════════════════════════════════════ */
+      function calcStreak() {
+        let streak = 0,
+          d = new Date();
+        for (let i = 0; i < 365; i++) {
+          const key = `grid_${d.toISOString().slice(0, 10)}`;
+          const g = ld(key, {});
+          if (Object.keys(g).length > 0) {
+            streak++;
+          } else if (i > 0) {
+            break;
+          }
+          d.setDate(d.getDate() - 1);
+        }
+        document.getElementById("streakNum").textContent = streak;
+        sv("streak", streak);
+        return streak;
+      }
+
+      /* ══════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════ */
+      function renderDash() {
+        calcStreak();
+        // Stats
+        const gridData = ld(`grid_${TODAY}`, {});
+        const totalMins = Object.keys(gridData).length * 30;
+        const allTasks = Object.values(ld("tasks_all", {})).flat();
+        const doneTasks = allTasks.filter((t) => t.done).length;
+        const streak = ld("streak", 0);
+        const pomoCount = ld(`pomo_${TODAY}`, []).filter(
+          (p) => p.type === "focus",
+        ).length;
+
+        document.getElementById("dashStats").innerHTML = `
+    <div class="dash-stat lime">
+      <div class="ds-label">오늘 공부 시간</div>
+      <div class="ds-val">${Math.floor(totalMins / 60)}<span class="ds-unit">h</span>${totalMins % 60 || ""}<span class="ds-unit">${totalMins % 60 ? "m" : ""}</span></div>
+      <div class="ds-sub">그리드 기준</div>
+    </div>
+    <div class="dash-stat violet">
+      <div class="ds-label">완료한 할 일</div>
+      <div class="ds-val">${doneTasks}<span class="ds-unit">/${allTasks.length}</span></div>
+      <div class="ds-sub">${allTasks.length ? Math.round((doneTasks / allTasks.length) * 100) : 0}% 달성</div>
+    </div>
+    <div class="dash-stat sky">
+      <div class="ds-label">포모도로</div>
+      <div class="ds-val">${pomoCount}<span class="ds-unit">회</span></div>
+      <div class="ds-sub">오늘 집중 세션</div>
+    </div>`;
+
+        // Heatmap 30일
+        const hm = document.getElementById("miniHeat");
+        hm.innerHTML = "";
+        for (let i = 29; i >= 0; i--) {
+          const dd = new Date();
+          dd.setDate(dd.getDate() - i);
+          const key = `grid_${dd.toISOString().slice(0, 10)}`;
+          const mins = Object.keys(ld(key, {})).length * 30;
+          let cls = "";
+          if (mins >= 240) cls = "l4";
+          else if (mins >= 120) cls = "l3";
+          else if (mins >= 60) cls = "l2";
+          else if (mins > 0) cls = "l1";
+          const cell = document.createElement("div");
+          cell.className = `mh-cell ${cls}`;
+          cell.title = `${dd.getMonth() + 1}/${dd.getDate()} — ${mins}분`;
+          hm.appendChild(cell);
+        }
+
+        // D-Day
+        const ddays = ld("ddays", []);
+        const strip = document.getElementById("dashDday");
+        strip.innerHTML = "";
+        if (!ddays.length) {
+          strip.innerHTML =
+            '<span style="color:var(--text3);font-size:13px">D-Day 탭에서 시험 일정을 추가해보세요.</span>';
+          return;
+        }
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        ddays
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .slice(0, 5)
+          .forEach((dd) => {
+            const diff = Math.ceil(
+              (new Date(dd.date) - now) / (1000 * 60 * 60 * 24),
+            );
+            const subj = ddaySubjLabel(dd.subject);
+            const urgCls = diff <= 3 ? "urgent" : diff <= 7 ? "soon" : "";
+            strip.innerHTML += `<div class="dday-card">
+      <div class="dd-subject">${esc(subj.name)}</div>
+      <div class="dd-name">${esc(dd.name)}</div>
+      <div class="dd-days ${urgCls}">D-${diff}</div>
+      <div class="dd-unit">일 남음</div>
+    </div>`;
+          });
+
+        // Quick tasks
+        const tasks = ld("tasks_all", {});
+        const qt = document.getElementById("dashTasks");
+        const flat = Object.entries(tasks).flatMap(([sid, list]) =>
+          list.map((t) => ({ ...t, sid })),
+        );
+        const pending = flat.filter((t) => !t.done).slice(0, 5);
+        if (!pending.length) {
+          qt.innerHTML =
+            '<div style="color:var(--text3);font-size:14px;padding:8px 0">오늘 할 일이 없어요. 체크리스트 탭에서 추가해보세요!</div>';
+          return;
+        }
+        qt.innerHTML = pending
+          .map((t, i) => {
+            const subj = S(t.sid);
+            return `<div class="qt-item${t.done ? " done" : ""}">
+      <div class="qt-check${t.done ? " on" : ""}" onclick="dashToggle('${t.sid}',${flat.findIndex((f) => f === t)})"></div>
+      <span class="qt-subj" style="background:${subj.color}22;color:${subj.color}">${subj.name}</span>
+      <span class="qt-text">${esc(t.text)}</span>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function dashToggle(sid, globalIdx) {
+        const tasks = ld("tasks_all", {});
+        const flat = Object.entries(tasks).flatMap(([s, list]) =>
+          list.map((t) => ({ ...t, sid: s })),
+        );
+        const item = flat[globalIdx];
+        if (!item) return;
+        const arr = tasks[item.sid];
+        const localIdx = arr.findIndex((t) => t.text === item.text);
+        if (localIdx >= 0) arr[localIdx].done = !arr[localIdx].done;
+        sv("tasks_all", tasks);
+        renderDash();
+      }
+
+      /* ══════════════════════════════════════════
+   TIME GRID
+══════════════════════════════════════════ */
+      let selSubj = SUBJECTS[0].id,
+        isErase = false,
+        isPainting = false;
+      const gridKey = `grid_${TODAY}`;
+      let gridData = ld(gridKey, {});
+
+      const START_H = 0,
+        END_H = 24;
+      const HOURS = Array.from(
+        { length: END_H - START_H },
+        (_, i) => START_H + i,
+      );
+
+      function buildGrid() {
+        const g = document.getElementById("timeGrid");
+        g.style.gridTemplateColumns = `48px repeat(${HOURS.length * 2},20px)`;
+        g.innerHTML = "";
+        // header
+        const sp = document.createElement("div");
+        sp.className = "tg-header-space";
+        g.appendChild(sp);
+        HOURS.forEach((h) => {
+          ["", "30"].forEach((m, mi) => {
+            const l = document.createElement("div");
+            l.className = "tg-hr-label";
+            l.textContent = mi === 0 ? String(h) : "";
+            g.appendChild(l);
+          });
+        });
+        // rows per subject
+        SUBJECTS.forEach((subj) => {
+          const lbl = document.createElement("div");
+          lbl.className = "tg-row-label";
+          lbl.style.color = subj.color;
+          lbl.textContent = subj.name;
+          g.appendChild(lbl);
+          HOURS.forEach((h) => {
+            ["00", "30"].forEach((m) => {
+              const key = `${subj.id}_${h}_${m}`;
+              const cell = document.createElement("div");
+              cell.className = "tg-cell";
+              cell.dataset.key = key;
+              cell.dataset.subj = subj.id;
+              if (gridData[key]) cell.style.background = subj.color;
+              cell.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                isPainting = true;
+                paintCell(cell, key, subj.id);
+              });
+              cell.addEventListener("mouseover", () => {
+                if (isPainting) paintCell(cell, key, subj.id);
+              });
+              g.appendChild(cell);
+            });
+          });
+        });
+        document.addEventListener("mouseup", () => {
+          isPainting = false;
+        });
+        updateSummary();
+      }
+
+      function paintCell(cell, key, rowSubjId) {
+        if (isErase) {
+          delete gridData[key];
+          cell.style.background = "var(--surface2)";
+        } else {
+          // paint only the row matching selected subject
+          if (rowSubjId !== selSubj) return;
+          gridData[key] = selSubj;
+          cell.style.background = S(selSubj).color;
+        }
+        sv(gridKey, gridData);
+        updateSummary();
+        if (!isErase) updateStreakDot();
+      }
+
+      function clearGrid() {
+        if (!confirm("오늘의 타임 그리드를 지울까요?")) return;
+        gridData = {};
+        sv(gridKey, gridData);
+        buildGrid();
+        toast("지웠어요.");
+      }
+
+      function refreshSubjectUI() {
+        buildSubjectPills();
+        buildGrid();
+        buildLegend();
+        buildTabs();
+        renderTasks();
+        updateSummary();
+      }
+
+      function addCustomSubject() {
+        const inp = document.getElementById("newSubjInp");
+        const name = inp.value.trim();
+        if (!name) {
+          toast("과목 이름을 입력해주세요!");
+          return;
+        }
+        if (SUBJECTS.some((s) => s.name === name)) {
+          toast("이미 있는 과목이에요.");
+          return;
+        }
+        const color = COLOR_PALETTE[SUBJECTS.length % COLOR_PALETTE.length];
+        const subj = {
+          id: "subj_" + Date.now(),
+          name,
+          color,
+          glow: hexToGlow(color),
+        };
+        SUBJECTS.push(subj);
+        sv("subjects", SUBJECTS);
+        if (!tasks[subj.id]) tasks[subj.id] = [];
+        sv("tasks_all", tasks);
+        selSubj = subj.id;
+        inp.value = "";
+        refreshSubjectUI();
+        toast(`'${name}' 과목을 추가했어요!`);
+      }
+
+      function removeSubject(id) {
+        if (SUBJECTS.length <= 1) {
+          toast("최소 1개 과목은 필요해요.");
+          return;
+        }
+        if (!confirm("이 과목을 삭제할까요?")) return;
+        SUBJECTS = SUBJECTS.filter((s) => s.id !== id);
+        sv("subjects", SUBJECTS);
+        if (selSubj === id) selSubj = SUBJECTS[0].id;
+        if (activeTab === id) activeTab = SUBJECTS[0].id;
+        refreshSubjectUI();
+        toast("과목을 삭제했어요.");
+      }
+
+      function buildSubjectPills() {
+        const wrap = document.getElementById("subjectPills");
+        wrap.innerHTML = "";
+        SUBJECTS.forEach((subj) => {
+          const p = document.createElement("div");
+          p.className = "subj-pill" + (subj.id === selSubj ? " sel" : "");
+          p.style.cssText = `background:${subj.color}18;color:${subj.color};--glow:${subj.glow}`;
+          p.innerHTML = `<span class="sp-dot" style="background:${subj.color}"></span>${esc(subj.name)}<span class="sp-del" title="삭제">✕</span>`;
+          p.querySelector(".sp-del").addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeSubject(subj.id);
+          });
+          p.addEventListener("click", () => {
+            selSubj = subj.id;
+            isErase = false;
+            document
+              .querySelectorAll(".subj-pill")
+              .forEach((el) => el.classList.remove("sel"));
+            document.querySelector(".erase-pill")?.classList.remove("sel");
+            p.classList.add("sel");
+          });
+          wrap.appendChild(p);
+        });
+        const ep = document.createElement("div");
+        ep.className = "erase-pill";
+        ep.textContent = "🧹 지우개";
+        ep.addEventListener("click", () => {
+          isErase = !isErase;
+          document
+            .querySelectorAll(".subj-pill")
+            .forEach((el) => el.classList.remove("sel"));
+          ep.classList.toggle("sel", isErase);
+        });
+        wrap.appendChild(ep);
+      }
+
+      function buildLegend() {
+        const lg = document.getElementById("gridLegend");
+        lg.innerHTML = SUBJECTS.map(
+          (s) =>
+            `<div class="gl-item"><span class="gl-dot" style="background:${s.color}"></span>${s.name}</div>`,
+        ).join("");
+      }
+
+      function updateSummary() {
+        const counts = {};
+        Object.values(gridData).forEach((sid) => {
+          counts[sid] = (counts[sid] || 0) + 1;
+        });
+        const wrap = document.getElementById("studySummary");
+        wrap.innerHTML = "";
+        let total = 0;
+        Object.entries(counts).forEach(([sid, cnt]) => {
+          const s = S(sid);
+          const mins = cnt * 30;
+          total += mins;
+          if (mins === 0) return;
+          const chip = document.createElement("div");
+          chip.className = "sum-chip";
+          chip.innerHTML = `<span class="sum-dot" style="background:${s.color}"></span>${esc(s.name)} <strong>${Math.floor(mins / 60) ? Math.floor(mins / 60) + "h " : ""}${mins % 60 ? (mins % 60) + "m" : ""}</strong>`;
+          wrap.appendChild(chip);
+        });
+        if (total) {
+          const tot = document.createElement("div");
+          tot.className = "sum-chip";
+          tot.innerHTML = `총 <strong>${Math.floor(total / 60) ? Math.floor(total / 60) + "h " : ""}${total % 60 ? (total % 60) + "m" : ""}</strong>`;
+          wrap.appendChild(tot);
+        }
+      }
+
+      function updateStreakDot() {
+        sv(`studied_${TODAY}`, true);
+      }
+
+      // Memo
+      let memos = ld(`memos_${TODAY}`, []);
+      function renderMemos() {
+        document.getElementById("memoList").innerHTML = memos
+          .map(
+            (m, i) => `
+    <li class="task-item">
+      <span style="font-size:15px">📝</span>
+      <span class="ti-text">${esc(m.text)}</span>
+      <span style="font-size:11px;color:var(--text3);margin-left:auto;margin-right:8px">${m.time}</span>
+      <span class="ti-del" onclick="delMemo(${i})">✕</span>
+    </li>`,
+          )
+          .join("");
+      }
+      function addMemo() {
+        const inp = document.getElementById("memoInp");
+        const txt = inp.value.trim();
+        if (!txt) return;
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
+        memos.unshift({ text: txt, time: timeStr, subject: selSubj });
+        sv(`memos_${TODAY}`, memos);
+        inp.value = "";
+        renderMemos();
+        let recs = ld(`records_${TODAY}`, []);
+        recs.unshift({ text: txt, time: timeStr, subject: selSubj });
+        sv(`records_${TODAY}`, recs);
+        toast("기록했어요! ✓");
+      }
+      function delMemo(i) {
+        memos.splice(i, 1);
+        sv(`memos_${TODAY}`, memos);
+        renderMemos();
+      }
+
+      /* ══════════════════════════════════════════
+   CHECKLIST
+══════════════════════════════════════════ */
+      let activeTab = SUBJECTS[0]?.id || "etc";
+      let tasks = ld("tasks_all", {});
+      SUBJECTS.forEach((s) => {
+        if (!tasks[s.id]) tasks[s.id] = [];
+      });
+      sv("tasks_all", tasks);
+
+      function buildTabs() {
+        document.getElementById("checklistTabs").innerHTML = SUBJECTS.map(
+          (s) => {
+            const cnt = tasks[s.id]?.filter((t) => !t.done).length || 0;
+            return `<div class="stab${s.id === activeTab ? " active" : ""}" onclick="switchTab('${s.id}')">
+      <span class="stab-dot" style="background:${s.color}"></span>
+      ${s.name}${cnt ? `<span class="stab-cnt">${cnt}</span>` : ""}
+    </div>`;
+          },
+        ).join("");
+      }
+      function switchTab(id) {
+        activeTab = id;
+        buildTabs();
+        renderTasks();
+      }
+      function renderTasks() {
+        const list = tasks[activeTab] || [];
+        document.getElementById("taskList").innerHTML = list
+          .map(
+            (t, i) => `
+    <li class="task-item${t.done ? " done" : ""}">
+      <div class="ti-check${t.done ? " on" : ""}" onclick="toggleTask(${i})"></div>
+      <span class="ti-text">${esc(t.text)}</span>
+      <span class="ti-del" onclick="delTask(${i})">✕</span>
+    </li>`,
+          )
+          .join("");
+        const total = list.length,
+          done = list.filter((t) => t.done).length;
+        document.getElementById("progFill").style.width =
+          (total ? Math.round((done / total) * 100) : 0) + "%";
+      }
+      function addTask() {
+        const inp = document.getElementById("taskInp");
+        const txt = inp.value.trim();
+        if (!txt) return;
+        tasks[activeTab].push({ text: txt, done: false });
+        sv("tasks_all", tasks);
+        inp.value = "";
+        buildTabs();
+        renderTasks();
+      }
+      function toggleTask(i) {
+        tasks[activeTab][i].done = !tasks[activeTab][i].done;
+        sv("tasks_all", tasks);
+        buildTabs();
+        renderTasks();
+      }
+      function delTask(i) {
+        tasks[activeTab].splice(i, 1);
+        sv("tasks_all", tasks);
+        buildTabs();
+        renderTasks();
+      }
+
+      /* ══════════════════════════════════════════
+   POMODORO
+══════════════════════════════════════════ */
+      const CIRC = 2 * Math.PI * 104;
+      let pomoRunning = false,
+        pomoInterval = null;
+      let pomoMode = "focus"; // focus | short | long
+      let pomoCount = 0;
+      let pomoSecs = 0;
+      let pomoStarted = false;
+
+      function getPomoMins() {
+        return {
+          focus: parseInt(document.getElementById("pomoFocusMin").value) || 25,
+          short: parseInt(document.getElementById("pomoShortMin").value) || 5,
+          long: parseInt(document.getElementById("pomoLongMin").value) || 15,
+          set: parseInt(document.getElementById("pomoSet").value) || 4,
+        };
+      }
+
+      function pomoReset() {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        pomoStarted = false;
+        const { focus } = getPomoMins();
+        pomoSecs = focus * 60;
+        pomoMode = "focus";
+        document.getElementById("pomoPlayBtn").textContent = "▶";
+        document.getElementById("pomoMode").textContent = "집중";
+        updatePomoDisplay();
+      }
+
+      function startFocusPreset(mins) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById("pomoFocusMin").value = mins;
+        pomoSecs = mins * 60;
+        pomoMode = "focus";
+        pomoStarted = true;
+        document.getElementById("pomoPlayBtn").textContent = "⏸";
+        document.getElementById("pomoMode").textContent = "집중";
+        updatePomoDisplay();
+        pomoRunning = true;
+        pomoInterval = setInterval(() => {
+          if (pomoSecs > 0) {
+            pomoSecs--;
+            updatePomoDisplay();
+          } else {
+            pomoFinish();
+          }
+        }, 1000);
+        toast(`🍅 ${mins}분 집중 시작!`);
+      }
+
+      function updatePomoDisplay() {
+        const { focus, short, long } = getPomoMins();
+        const total =
+          (pomoMode === "focus" ? focus : pomoMode === "short" ? short : long) *
+          60;
+        const m = Math.floor(pomoSecs / 60),
+          s = pomoSecs % 60;
+        document.getElementById("pomoTime").textContent =
+          `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        const pct = pomoSecs / total;
+        const ring = document.getElementById("pomoRing");
+        ring.style.strokeDashoffset = CIRC * (1 - pct);
+        ring.style.stroke =
+          pomoMode === "focus"
+            ? "var(--lime)"
+            : pomoMode === "short"
+              ? "var(--sky)"
+              : "var(--violet)";
+        document.getElementById("pomoMode").textContent =
+          pomoMode === "focus"
+            ? "집중"
+            : pomoMode === "short"
+              ? "짧은 휴식"
+              : "긴 휴식";
+        updateTopbarTimer();
+      }
+
+      function pomoToggle() {
+        if (pomoRunning) {
+          clearInterval(pomoInterval);
+          pomoRunning = false;
+          document.getElementById("pomoPlayBtn").textContent = "▶";
+        } else {
+          pomoRunning = true;
+          pomoStarted = true;
+          document.getElementById("pomoPlayBtn").textContent = "⏸";
+          pomoInterval = setInterval(() => {
+            if (pomoSecs > 0) {
+              pomoSecs--;
+              updatePomoDisplay();
+            } else {
+              pomoFinish();
+            }
+          }, 1000);
+        }
+      }
+
+      function pomoFinish() {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById("pomoPlayBtn").textContent = "▶";
+        const { focus, short, long, set } = getPomoMins();
+        const log = ld(`pomo_${TODAY}`, []);
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
+        if (pomoMode === "focus") {
+          pomoCount++;
+          log.push({
+            type: "focus",
+            time: timeStr,
+            label: `집중 #${pomoCount} (${focus}분)`,
+          });
+          toast("🍅 집중 완료! 휴식하세요.");
+          pomoMode = pomoCount % set === 0 ? "long" : "short";
+          pomoSecs = (pomoMode === "long" ? long : short) * 60;
+        } else {
+          log.push({
+            type: "break",
+            time: timeStr,
+            label: `휴식 완료 (${pomoMode === "long" ? long : short}분)`,
+          });
+          toast("휴식 끝! 다시 집중해봐요 💪");
+          pomoMode = "focus";
+          pomoSecs = focus * 60;
+        }
+        sv(`pomo_${TODAY}`, log);
+        renderPomoLog();
+        updatePomoDisplay();
+      }
+
+      function pomoSkip() {
+        pomoFinish();
+      }
+
+      function renderPomoLog() {
+        const log = ld(`pomo_${TODAY}`, []);
+        document.getElementById("pomoLog").innerHTML = log.length
+          ? [...log]
+              .reverse()
+              .map(
+                (l) => `
+      <li class="pomo-log-item">
+        <span class="pomo-log-dot ${l.type === "focus" ? "" : "brk"}"></span>
+        <span>${esc(l.label)}</span>
+        <span style="margin-left:auto;color:var(--text3);font-size:12px">${l.time}</span>
+      </li>`,
+              )
+              .join("")
+          : '<li style="color:var(--text3);font-size:13px;padding:4px">아직 기록이 없어요. 타이머를 시작해보세요!</li>';
+      }
+
+      /* ══════════════════════════════════════════
+   AI PLAN
+══════════════════════════════════════════ */
+
+      async function getAIPlan() {
+        const time = document.getElementById("aiTime").value.trim();
+        const hours = Number(document.getElementById("aiHours").value) || 3;
+        const subjects = document.getElementById("aiSubjects").value.trim();
+        const condition = document.getElementById("aiCondition").value;
+        const note = document.getElementById("aiNote").value.trim();
+
+        if (!subjects) {
+          toast("공부할 내용을 입력해주세요!");
+          return;
+        }
+
+        const btn = document.getElementById("aiBtn");
+        const out = document.getElementById("aiOutput");
+
+        btn.disabled = true;
+        btn.textContent = "⏳ 계획 생성 중...";
+        out.style.display = "block";
+        out.className = "ai-output thinking";
+
+        await new Promise((r) => setTimeout(r, 1000));
+
+        const subjectList = subjects.split("\n").filter((v) => v.trim());
+
+        let plan = `📋 오늘의 학습 전략
+
+`;
+
+        if (condition === "최상") {
+          plan += "집중력이 좋은 날이니 어려운 과목부터 끝내봐!\n\n";
+        } else if (condition === "보통") {
+          plan += "적당한 난이도로 꾸준히 진행하는 걸 추천해.\n\n";
+        } else {
+          plan += "무리하지 말고 쉬는 시간을 자주 가져가자.\n\n";
+        }
+
+        plan += "⏰ 추천 시간표\n\n";
+
+        let current = 1;
+
+        subjectList.forEach((s) => {
+          plan += `${current}교시 (${Math.round(hours / subjectList.length)}시간)\n`;
+          plan += `• ${s}\n`;
+          plan += `• 10분 휴식\n\n`;
+          current++;
+        });
+
+        plan += "💡 과목별 핵심 포인트\n\n";
+
+        subjectList.forEach((s) => {
+          plan += `• ${s}\n`;
+        });
+
+        plan += "\n🎯 오늘의 목표\n";
+        plan += "• 계획한 분량 80% 이상 완료하기\n";
+        plan += "• 공부 후 10분 복습하기\n";
+
+        if (note) {
+          plan += `\n📌 참고사항\n${note}`;
+        }
+
+        out.className = "ai-output";
+        out.textContent = plan;
+
+        btn.disabled = false;
+        btn.textContent = "✨ 맞춤 공부 계획 받기";
+      }
+
+      /* ══════════════════════════════════════════
+   D-DAY
+══════════════════════════════════════════ */
+      const DDAY_COLORS = ["lime", "violet", "rose", "sky", "amber"];
+      let ddays = ld("ddays", []);
+
+      function renderDdays() {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const wrap = document.getElementById("ddayCards");
+        if (!ddays.length) {
+          wrap.innerHTML =
+            '<div style="color:var(--text3);font-size:14px;padding:12px 0">아직 일정이 없어요. 위에서 추가해보세요!</div>';
+          return;
+        }
+        wrap.innerHTML = ddays
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .map((dd, i) => {
+            const diff = Math.ceil(
+              (new Date(dd.date) - now) / (1000 * 60 * 60 * 24),
+            );
+            const subj = ddaySubjLabel(dd.subject);
+            const col = DDAY_COLORS[i % DDAY_COLORS.length];
+            const numColor =
+              diff <= 3
+                ? "var(--rose)"
+                : diff <= 7
+                  ? "var(--amber)"
+                  : "var(--lime)";
+            return `<div class="dday-big ${col}">
+      <div class="ddb-del" onclick="delDday(${i})">✕</div>
+      <div class="ddb-label" style="color:${subj.color}">${esc(subj.name)}</div>
+      <div class="ddb-name">${esc(dd.name)}</div>
+      <div class="ddb-num" style="color:${numColor}">D-${diff < 0 ? "day passed" : diff}</div>
+      <div class="ddb-unit">일 남음</div>
+      <div class="ddb-date">${dd.date}</div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      function addDday() {
+        const name = document.getElementById("ddName").value.trim();
+        const date = document.getElementById("ddDate").value;
+        const subject =
+          document.getElementById("ddSubject").value.trim() || "기타";
+        if (!name || !date) {
+          toast("이름과 날짜를 입력해주세요!");
+          return;
+        }
+        ddays.push({ name, date, subject });
+        sv("ddays", ddays);
+        document.getElementById("ddName").value = "";
+        document.getElementById("ddDate").value = "";
+        renderDdays();
+        toast("추가됐어요! 📌");
+      }
+
+      function delDday(i) {
+        ddays.splice(i, 1);
+        sv("ddays", ddays);
+        renderDdays();
+      }
+
+      /* ══════════════════════════════════════════
+   RECORDS
+══════════════════════════════════════════ */
+      let recDays = 7;
+      document.querySelectorAll(".rec-filter-btn").forEach((b) => {
+        b.addEventListener("click", () => {
+          recDays = parseInt(b.dataset.days);
+          document
+            .querySelectorAll(".rec-filter-btn")
+            .forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+          renderRecords();
+        });
+      });
+
+      function renderRecords() {
+        // weekly chart (7 days)
+        const chart = document.getElementById("weeklyChart");
+        const labels = document.getElementById("weeklyLabels");
+        const days7 = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (6 - i));
+          return d;
+        });
+        const maxMins = Math.max(
+          ...days7.map(
+            (d) =>
+              Object.keys(ld(`grid_${d.toISOString().slice(0, 10)}`, {}))
+                .length * 30,
+          ),
+          1,
+        );
+        const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+        chart.innerHTML = days7
+          .map((d) => {
+            const mins =
+              Object.keys(ld(`grid_${d.toISOString().slice(0, 10)}`, {}))
+                .length * 30;
+            const h = Math.round((mins / maxMins) * 100);
+            const isToday = d.toISOString().slice(0, 10) === TODAY;
+            return `<div class="wbc-bar${isToday ? " today" : ""}" style="height:${h}px" title="${d.getMonth() + 1}/${d.getDate()} — ${mins}분"></div>`;
+          })
+          .join("");
+        labels.innerHTML = days7
+          .map((d) => `<div class="wbc-label">${dayNames[d.getDay()]}</div>`)
+          .join("");
+
+        // Stats
+        let totalMins = 0,
+          totalRecs = 0;
+        for (let i = 0; i < recDays; i++) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const key = `grid_${d.toISOString().slice(0, 10)}`;
+          totalMins += Object.keys(ld(key, {})).length * 30;
+          totalRecs += ld(`records_${d.toISOString().slice(0, 10)}`, []).length;
+        }
+        document.getElementById("recStats").innerHTML = `
+    <div class="dash-stat lime"><div class="ds-label">${recDays}일 공부 시간</div>
+      <div class="ds-val">${Math.floor(totalMins / 60)}<span class="ds-unit">h</span></div>
+      <div class="ds-sub">그리드 기준</div></div>
+    <div class="dash-stat violet"><div class="ds-label">기록 수</div>
+      <div class="ds-val">${totalRecs}<span class="ds-unit">개</span></div>
+      <div class="ds-sub">메모 포함</div></div>
+    <div class="dash-stat sky"><div class="ds-label">일 평균</div>
+      <div class="ds-val">${Math.round(totalMins / recDays)}<span class="ds-unit">분</span></div>
+      <div class="ds-sub">하루 평균</div></div>`;
+
+        // Record list
+        const list = document.getElementById("recList");
+        let all = [];
+        for (let i = 0; i < recDays; i++) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const ds = d.toISOString().slice(0, 10);
+          const recs = ld(`records_${ds}`, []);
+          const memoRecs = ld(`memos_${ds}`, []).map((m) => ({
+            ...m,
+            _fromMemo: true,
+          }));
+          [...recs, ...memoRecs].forEach((r) => all.push({ ...r, date: ds }));
+        }
+        if (!all.length) {
+          list.innerHTML =
+            '<div style="color:var(--text3);font-size:14px;padding:8px 0">아직 기록이 없어요. 타임 플래너에서 공부를 기록해보세요!</div>';
+          return;
+        }
+        list.innerHTML = all
+          .slice(0, 30)
+          .map((r) => {
+            const subj = S(r.subject);
+            return `<div class="rec-item">
+      <div class="rec-bar" style="background:${subj.color}"></div>
+      <div class="rec-body">
+        <div class="rec-meta">
+          <span class="rec-subj" style="background:${subj.color}18;color:${subj.color}">${subj.name}</span>
+          <span class="rec-time">${r.date} ${r.time || ""}</span>
+        </div>
+        <div class="rec-content">${esc(r.text || r.content || "")}</div>
+      </div>
+    </div>`;
+          })
+          .join("");
+      }
+
+      /* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+      buildSubjectPills();
+      buildGrid();
+      buildLegend();
+      renderMemos();
+      buildTabs();
+      renderTasks();
+      pomoReset();
+      renderPomoLog();
+      renderDdays();
+      renderDash();
+      calcStreak();
+
+      // Set default date for D-day input
+      document.getElementById("ddDate").valueAsDate = new Date();
+
+      // Enter shortcuts
+      document.getElementById("memoInp").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addMemo();
+      });
+      document.getElementById("taskInp").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addTask();
+      });
+      document.getElementById("newSubjInp").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addCustomSubject();
+      });
+    </script>
+  </body>
+</html>
