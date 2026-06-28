@@ -2218,7 +2218,6 @@
           delete gridData[key];
           cell.style.background = "var(--surface2)";
         } else {
-          // paint only the row matching selected subject
           if (rowSubjId !== selSubj) return;
           gridData[key] = selSubj;
           cell.style.background = S(selSubj).color;
